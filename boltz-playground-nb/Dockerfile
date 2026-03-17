@@ -37,7 +37,7 @@ RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/s
     install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && \
     rm -f kubectl
 
-RUN uv pip install --system jupyterlab notebook
+RUN uv pip install --system --break-system-packages jupyterlab notebook
 
 COPY shared/etc/ /etc/
 RUN chmod 660 /etc/sudoers.d/*
