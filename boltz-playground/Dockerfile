@@ -32,8 +32,10 @@ RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/s
 
 COPY shared/etc/ /etc/
 RUN chmod 660 /etc/sudoers.d/*
-RUN useradd -ms /bin/bash -p '' seoklab
+RUN useradd -ms /bin/zsh -p '' seoklab
 RUN apt-get update && apt-get upgrade -y && apt-get autoremove --purge -y
+
+ENV TMUX_TMPDIR=/home/seoklab/.tmux
 
 USER seoklab
 WORKDIR /home/seoklab
