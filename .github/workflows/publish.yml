@@ -64,6 +64,7 @@ jobs:
       packages: write
       attestations: write
       id-token: write
+      artifact-metadata: write
 
     steps:
       - uses: actions/checkout@v6
