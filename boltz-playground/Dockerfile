@@ -11,7 +11,7 @@ RUN export DEBIAN_FRONTEND=noninteractive; /bin/yes | unminimize && \
     linux-tools-common linux-tools-generic tcsh csh php-cli \
     lm-sensors libboost-all-dev libcgicc3 libgdbm-dev libgoogle-perftools4 \
     libjemalloc2 libjsoncpp25 libomp5 libqt5core5a libswitch-perl libsz2 \
-    libglu1-mesa libgl1 net-tools r-base-core zsh gh
+    libglu1-mesa libgl1 net-tools r-base-core zsh gh nvtop
 
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
     dpkg-reconfigure -f noninteractive locales && \
@@ -30,10 +30,26 @@ RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/s
 
 COPY shared/etc/ /etc/
 RUN chmod 660 /etc/sudoers.d/*
-RUN useradd -ms /bin/zsh -p '' seoklab
-RUN apt-get update && apt-get upgrade -y && apt-get autoremove --purge -y
+RUN useradd -u 500 -ms /bin/zsh -p '' seoklab
+RUN mkdir -p /home/seoklab/.ssh && \
+    ssh-keygen -t rsa -b 4096 -q -N '' -f /home/seoklab/.ssh/id_rsa && \
+    echo -e "Host galaxy3\n\
+    HostName cluster.seoklab.org\n\
+    ControlMaster auto\n\
+    ControlPath ~/.ssh/control-%r@%h:%p\n\
+    ControlPersist 0\n\
+\n\
+Host galaxy4\n\
+    ProxyJump galaxy3\n\
+    ControlMaster auto\n\
+    ControlPath ~/.ssh/control-%r@%h:%p\n\
+    ControlPersist 10m" > /home/seoklab/.ssh/config && \
+    chown -R 500:500 /home/seoklab/.ssh && \
+    chmod 700 /home/seoklab/.ssh && \
+    chmod 600 /home/seoklab/.ssh/config /home/seoklab/.ssh/id_rsa && \
+    chmod 644 /home/seoklab/.ssh/id_rsa.pub
 
-ENV TMUX_TMPDIR=/home/seoklab/.tmux
+RUN apt-get update && apt-get upgrade -y && apt-get autoremove --purge -y
 
 USER seoklab
 WORKDIR /home/seoklab
