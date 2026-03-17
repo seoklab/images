@@ -1,79 +1,40 @@
-FROM nvidia/cuda:13.0.0-cudnn-devel-ubuntu24.04
+FROM nvidia/cuda:13.1.1-cudnn-devel-ubuntu24.04
 
-ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=Asia/Seoul
-ENV LANG=C.UTF-8
-ENV LC_ALL=C.UTF-8
+ENV LANGUAGE=en_US.UTF-8 LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 TZ=Asia/Seoul
 
-RUN apt-get update && apt-get install -y \
-    software-properties-common \
-    curl \
-    wget \
-    git \
-    vim \
-    tmux \
-    ca-certificates \
-    build-essential \
-    pkg-config \
-    ninja-build \
-    cmake \
-    gfortran \
-    libssl-dev \
-    zlib1g-dev \
-    libbz2-dev \
-    libreadline-dev \
-    libsqlite3-dev \
-    libffi-dev \
-    liblzma-dev \
-    libncursesw5-dev \
-    xz-utils \
-    tk-dev \
-    libxml2-dev \
-    libxmlsec1-dev \
-    libglib2.0-0 \
-    libsm6 \
-    libxext6 \
-    libxrender1 \
-    libaio-dev \
-    sudo \
-    && rm -rf /var/lib/apt/lists/*
+RUN export DEBIAN_FRONTEND=noninteractive; apt-get update && \
+    apt-get install -y ca-certificates && update-ca-certificates
+RUN rm /etc/apt/sources.list.d/* && rm -rf /var/lib/apt/lists/*
+COPY shared/etc/apt/sources.list.d/ /etc/apt/sources.list.d/
+RUN export DEBIAN_FRONTEND=noninteractive; /bin/yes | unminimize && \
+    apt-get update && apt-get upgrade -y && apt-get autoremove --purge -y && \
+    apt-get install -y ubuntu-minimal ubuntu-standard ubuntu-server-minimal ubuntu-server \
+    build-essential gcc-multilib gfortran gdb valgrind python3 python3-pip \
+    linux-tools-common linux-tools-generic tcsh csh php-cli \
+    lm-sensors libboost-all-dev libcgicc3 libgdbm-dev libgoogle-perftools4 \
+    libjemalloc2 libjsoncpp25 libomp5 libqt5core5a libswitch-perl libsz2 \
+    libglu1-mesa libgl1 net-tools r-base-core zsh
 
-# Python 3.12
-RUN add-apt-repository ppa:deadsnakes/ppa -y && \
-    apt-get update && apt-get install -y \
-    python3.12 \
-    python3.12-dev \
-    python3.12-venv \
-    && rm -rf /var/lib/apt/lists/*
+RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
+    dpkg-reconfigure -f noninteractive locales && \
+    update-locale LANG=en_US.UTF-8
 
-# python / pip
+RUN ln -sf /usr/share/zoneinfo/Asia/Seoul /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata && \
+    chmod -x /etc/update-motd.d/*reboot*
 
-# code-server 설치..?
-#RUN curl -fsSL https://code-server.dev/install.sh | sh
-
-# python
-RUN ln -sf /usr/bin/python3.12 /usr/bin/python
-
-# venv + pip + uv
-RUN python -m venv /opt/venv && \
-    /opt/venv/bin/pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    /opt/venv/bin/pip install --no-cache-dir uv
-
-ENV PATH="/opt/venv/bin:${PATH}"
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 # kubectl
 RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
     install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && \
     rm -f kubectl
 
-# non-root user
-ENV NB_USER=bwkim1324
+COPY shared/etc/ /etc/
+RUN chmod 660 /etc/sudoers.d/*
+RUN useradd -ms /bin/bash -p '' seoklab
+RUN apt-get update && apt-get upgrade -y && apt-get autoremove --purge -y
 
-RUN useradd -m -s /bin/bash -U ${NB_USER} && \
-    echo "${NB_USER} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${NB_USER} && \
-    chmod 0440 /etc/sudoers.d/${NB_USER}
-
-USER ${NB_USER}
-WORKDIR /home/${NB_USER}/boltz
-
-CMD ["/bin/bash", "-lc", "sleep infinity"]
+USER seoklab
+WORKDIR /home/seoklab
+ENTRYPOINT [ "/bin/zsh", "-il" ]
