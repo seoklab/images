@@ -4,8 +4,6 @@ ENV LANGUAGE=en_US.UTF-8 LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 TZ=Asia/Seoul
 
 RUN export DEBIAN_FRONTEND=noninteractive; apt-get update && \
     apt-get install -y ca-certificates && update-ca-certificates
-RUN rm /etc/apt/sources.list.d/* && rm -rf /var/lib/apt/lists/*
-COPY shared/etc/apt/sources.list.d/ /etc/apt/sources.list.d/
 RUN export DEBIAN_FRONTEND=noninteractive; /bin/yes | unminimize && \
     apt-get update && apt-get upgrade -y && apt-get autoremove --purge -y && \
     apt-get install -y ubuntu-minimal ubuntu-standard ubuntu-server-minimal ubuntu-server \
