@@ -14,7 +14,6 @@ defaults:
     shell: bash
 
 env:
-  REGISTRY: docker.io
   IMAGE_NAMESPACE: ${{ vars.DOCKERHUB_NAMESPACE }}
 
 jobs:
@@ -22,6 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.collect.outputs.matrix }}
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v6
 
@@ -53,9 +54,16 @@ jobs:
   publish:
     needs: discover
     runs-on: ubuntu-latest
+
     strategy:
       fail-fast: false
       matrix: ${{ fromJSON(needs.discover.outputs.matrix) }}
+
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
 
     steps:
       - uses: actions/checkout@v6
@@ -64,19 +72,20 @@ jobs:
 
       - uses: docker/login-action@v4
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: docker.io
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - id: meta
         uses: docker/metadata-action@v6
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image }}
+          images: docker.io/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image }}
           tags: |
             type=raw,value=latest
             type=sha,format=short,prefix=sha-
 
-      - name: Build and push ${{ matrix.image }}
+      - id: push
+        name: Build and push ${{ matrix.image }}
         uses: docker/build-push-action@v7
         with:
           context: ${{ matrix.context }}
@@ -87,3 +96,13 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: index.docker.io/${{ env.IMAGE_NAMESPACE }}/${{ matrix.image }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
+
+concurrency:
+  group: ${{ github.event_name }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
