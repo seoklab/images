@@ -42,7 +42,7 @@ RUN chmod 660 /etc/sudoers.d/*
 RUN useradd -u 500 -ms /bin/zsh -p '' ${NB_USER}
 RUN mkdir -p /home/${NB_USER}/.ssh && \
     printf "Host galaxy3\n\
-    HostName cluster3.seoklab.org\n\
+    HostName cluster.seoklab.org\n\
     Port 1022\n\
     ControlMaster auto\n\
     ControlPath ~/.ssh/control-%%r@%%h:%%p\n\
@@ -59,7 +59,6 @@ Host galaxy4\n\
 RUN apt-get update && apt-get upgrade -y && apt-get autoremove --purge -y
 
 USER ${NB_USER}
-RUN ssh-keygen -t rsa -b 4096 -q -N '' -f /home/${NB_USER}/.ssh/id_rsa
 WORKDIR /home/${NB_USER}
 ENTRYPOINT [ "/bin/zsh", "-il", "-c" ]
 CMD ["jupyter lab --notebook-dir=/home/${NB_USER} --ip=0.0.0.0 --no-browser --allow-root --port=8888 --LabApp.token='' --LabApp.password='' --LabApp.allow_origin='*' --LabApp.base_url=${NB_PREFIX}"]
