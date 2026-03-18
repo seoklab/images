@@ -42,16 +42,15 @@ RUN chmod 660 /etc/sudoers.d/*
 RUN useradd -u 500 -ms /bin/zsh -p '' ${NB_USER}
 RUN mkdir -p /home/${NB_USER}/.ssh && \
     ssh-keygen -t rsa -b 4096 -q -N '' -f /home/${NB_USER}/.ssh/id_rsa && \
-    echo -e "Host galaxy3\n\
+    printf "Host galaxy3\n\
     HostName cluster.seoklab.org\n\
     ControlMaster auto\n\
-    ControlPath ~/.ssh/control-%r@%h:%p\n\
-    ControlPersist 0\n\
-\n\
+    ControlPath ~/.ssh/control-%%r@%%h:%%p\n\
+    ControlPersist 0\n\n\
 Host galaxy4\n\
     ProxyJump galaxy3\n\
     ControlMaster auto\n\
-    ControlPath ~/.ssh/control-%r@%h:%p\n\
+    ControlPath ~/.ssh/control-%%r@%%h:%%p\n\
     ControlPersist 10m" > /home/${NB_USER}/.ssh/config && \
     chown -R 500:500 /home/${NB_USER}/.ssh && \
     chmod 700 /home/${NB_USER}/.ssh && \
