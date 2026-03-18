@@ -41,27 +41,25 @@ COPY shared/etc/ /etc/
 RUN chmod 660 /etc/sudoers.d/*
 RUN useradd -u 500 -ms /bin/zsh -p '' ${NB_USER}
 RUN mkdir -p /home/${NB_USER}/.ssh && \
-    ssh-keygen -t rsa -b 4096 -q -N '' -f /home/${NB_USER}/.ssh/id_rsa && \
-    echo -e "Host galaxy3\n\
-    HostName cluster.seoklab.org\n\
+    printf "Host galaxy3\n\
+    HostName cluster3.seoklab.org\n\
+    Port 1022\n\
     ControlMaster auto\n\
-    ControlPath ~/.ssh/control-%r@%h:%p\n\
-    ControlPersist 0\n\
-\n\
+    ControlPath ~/.ssh/control-%%r@%%h:%%p\n\
+    ControlPersist 0\n\n\
 Host galaxy4\n\
     ProxyJump galaxy3\n\
     ControlMaster auto\n\
-    ControlPath ~/.ssh/control-%r@%h:%p\n\
+    ControlPath ~/.ssh/control-%%r@%%h:%%p\n\
     ControlPersist 10m" > /home/${NB_USER}/.ssh/config && \
     chown -R 500:500 /home/${NB_USER}/.ssh && \
     chmod 700 /home/${NB_USER}/.ssh && \
-    chmod 600 /home/${NB_USER}/.ssh/config /home/${NB_USER}/.ssh/id_rsa && \
-    chmod 644 /home/${NB_USER}/.ssh/id_rsa.pub
+    chmod 600 /home/${NB_USER}/.ssh/config
 
 RUN apt-get update && apt-get upgrade -y && apt-get autoremove --purge -y
 
 USER ${NB_USER}
+RUN ssh-keygen -t rsa -b 4096 -q -N '' -f /home/${NB_USER}/.ssh/id_rsa
 WORKDIR /home/${NB_USER}
-
 ENTRYPOINT [ "/bin/zsh", "-il", "-c" ]
 CMD ["jupyter lab --notebook-dir=/home/${NB_USER} --ip=0.0.0.0 --no-browser --allow-root --port=8888 --LabApp.token='' --LabApp.password='' --LabApp.allow_origin='*' --LabApp.base_url=${NB_PREFIX}"]
