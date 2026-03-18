@@ -32,7 +32,6 @@ COPY shared/etc/ /etc/
 RUN chmod 660 /etc/sudoers.d/*
 RUN useradd -u 500 -ms /bin/zsh -p '' seoklab
 RUN mkdir -p /home/seoklab/.ssh && \
-    ssh-keygen -t rsa -b 4096 -q -N '' -f /home/seoklab/.ssh/id_rsa && \
     printf "Host galaxy3\n\
     HostName cluster.seoklab.org\n\
     ControlMaster auto\n\
@@ -45,11 +44,11 @@ Host galaxy4\n\
     ControlPersist 10m\n" > /home/seoklab/.ssh/config && \
     chown -R 500:500 /home/seoklab/.ssh && \
     chmod 700 /home/seoklab/.ssh && \
-    chmod 600 /home/seoklab/.ssh/config /home/seoklab/.ssh/id_rsa && \
-    chmod 644 /home/seoklab/.ssh/id_rsa.pub
+    chmod 600 /home/seoklab/.ssh/config
 
 RUN apt-get update && apt-get upgrade -y && apt-get autoremove --purge -y
 
 USER seoklab
+RUN ssh-keygen -t rsa -b 4096 -q -N '' -f /home/seoklab/.ssh/id_rsa
 WORKDIR /home/seoklab
 ENTRYPOINT [ "/bin/zsh", "-il" ]
