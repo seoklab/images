@@ -34,6 +34,8 @@ RUN useradd -u 500 -ms /bin/zsh -p '' seoklab
 
 RUN apt-get update && apt-get upgrade -y && apt-get autoremove --purge -y
 
+ENV XDG_CACHE_HOME=/home/seoklab/output/.cache NETRC=/home/seoklab/output/.netrc
+
 USER seoklab
 WORKDIR /home/seoklab
 ENTRYPOINT [ "/bin/zsh", "-il" ]
