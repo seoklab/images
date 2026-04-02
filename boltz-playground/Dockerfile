@@ -23,6 +23,15 @@ RUN ln -sf /usr/share/zoneinfo/Asia/Seoul /etc/localtime && \
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
 
+# miniforge (includes mamba)
+RUN curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh" && \
+    bash Miniforge3-Linux-x86_64.sh -b -p /opt/miniforge && \
+    rm Miniforge3-Linux-x86_64.sh && \
+    /opt/miniforge/bin/conda init zsh && \
+    /opt/miniforge/bin/conda init bash
+
+ENV PATH=/opt/miniforge/bin:$PATH
+
 # kubectl
 RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
     install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && \
