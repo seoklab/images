@@ -11,7 +11,7 @@ RUN export DEBIAN_FRONTEND=noninteractive; /bin/yes | unminimize && \
     linux-tools-common linux-tools-generic tcsh csh php-cli \
     lm-sensors libboost-all-dev libcgicc3 libgdbm-dev libgoogle-perftools4 \
     libjemalloc2 libjsoncpp25 libomp5 libqt5core5a libswitch-perl libsz2 \
-    libglu1-mesa libgl1 net-tools r-base-core zsh gh nvtop parallel
+    libglu1-mesa libgl1 net-tools r-base-core zsh gh nvtop parallel lbzip2 pv rsync
 
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
     dpkg-reconfigure -f noninteractive locales && \
