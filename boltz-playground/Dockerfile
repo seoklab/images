@@ -7,7 +7,7 @@ RUN export DEBIAN_FRONTEND=noninteractive; apt-get update && \
 RUN export DEBIAN_FRONTEND=noninteractive; /bin/yes | unminimize && \
     apt-get update && apt-get upgrade -y && apt-get autoremove --purge -y && \
     apt-get install -y ubuntu-minimal ubuntu-standard ubuntu-server-minimal ubuntu-server \
-    build-essential gcc-multilib gfortran gdb valgrind python3 python3-pip \
+    build-essential gcc-multilib gfortran gdb valgrind cmake python3 python3-pip \
     linux-tools-common linux-tools-generic tcsh csh php-cli \
     lm-sensors libboost-all-dev libcgicc3 libgdbm-dev libgoogle-perftools4 \
     libjemalloc2 libjsoncpp25 libomp5 libqt5core5a libswitch-perl libsz2 \
